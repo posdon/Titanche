@@ -3,7 +3,7 @@ package fr.satanche.titanche.roleplay;
 public class Game {
 
 	private final int ID;
-	private static GameState GAME_STATE;
+	private GameState GAME_STATE;
 	
 	public Game(int id) {
 		this.ID = id;
