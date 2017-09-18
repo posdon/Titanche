@@ -19,8 +19,8 @@ public class MainApp implements Runnable {
 	private Scanner scanner = new Scanner(System.in);
 	
 	
-	public MainApp(String token) throws LoginException, IllegalArgumentException, RateLimitedException{
-		jda = new JDABuilder(AccountType.BOT).setToken(token).buildAsync();
+	public MainApp(String token) throws LoginException, IllegalArgumentException, RateLimitedException, InterruptedException{
+		jda = new JDABuilder(AccountType.BOT).setToken(token).buildBlocking();
 		jda.addEventListener(new BotListener(commandFactory));
 		System.out.println("Bot connected.");
 	}
@@ -40,9 +40,9 @@ public class MainApp implements Runnable {
 			if(scanner.hasNextLine()) commandFactory.commandConsole(scanner.nextLine());
 		}
 		scanner.close();
-		System.out.println("Bot is going to shutdown.");
+		System.out.println("[Info] [Titanche] Bot is going to shutdown.");
 		jda.shutdown();
-		System.out.println("Bot disconnected.");
+		System.out.println("[Info] [Titanche] Bot disconnected.");
 		System.exit(0);
 	}
 	
@@ -51,7 +51,7 @@ public class MainApp implements Runnable {
 		try {
 			MainApp main = new MainApp(tokenBot);
 			new Thread(main, "bot").start();
-		} catch (LoginException | IllegalArgumentException | RateLimitedException e) {
+		} catch (LoginException | IllegalArgumentException | RateLimitedException | InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

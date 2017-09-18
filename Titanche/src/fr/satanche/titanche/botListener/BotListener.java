@@ -16,7 +16,6 @@ public class BotListener implements EventListener {
 	
 	@Override
 	public void onEvent(Event event){
-		System.out.println(event.getClass().getSimpleName());
 		if(event instanceof MessageReceivedEvent) onMessage((MessageReceivedEvent) event);
 	}
 	

@@ -9,6 +9,9 @@ import java.util.Map;
 import fr.satanche.titanche.MainApp;
 import fr.satanche.titanche.command.basic.CommandBotManaging;
 import fr.satanche.titanche.command.core.Command.ExecutorType;
+import fr.satanche.titanche.command.roleplay.CommandRolePlayCreation;
+import fr.satanche.titanche.command.roleplay.CommandRolePlayManaging;
+import fr.satanche.titanche.command.roleplay.CommandRolePlayPlaying;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
@@ -26,6 +29,7 @@ public class CommandFactory {
 	public CommandFactory(MainApp mainRef) {
 		this.mainRef = mainRef;
 		registerCommand(new CommandBotManaging(mainRef));
+		registerCommands(new CommandRolePlayCreation(), new CommandRolePlayManaging(), new CommandRolePlayPlaying());
     }
    
     public String getTag() {
@@ -46,6 +50,8 @@ public class CommandFactory {
                 Command command = method.getAnnotation(Command.class);
                 method.setAccessible(true);
                 SimpleCommand simpleCommand = new SimpleCommand(command.name(), command.description(), command.type(), object, method);
+                if(commands.containsKey(command.name()))
+                	throw new Error("[Warning] [Titanche] : Another command exist with the same name than "+command.name());
                 commands.put(command.name(), simpleCommand);
             }
         }
@@ -76,11 +82,14 @@ public class CommandFactory {
     }
    
     private Object[] getCommand(String command){
-        String[] commandSplit = command.split(" ");
-        String[] args = new String[commandSplit.length-1];
-        for(int i = 1; i < commandSplit.length; i++) args[i-1] = commandSplit[i];
-        SimpleCommand simpleCommand = commands.get(commandSplit[0]);
-        return new Object[]{simpleCommand, args};
+    	for(String currKey : commands.keySet()){
+    		if(command.startsWith(currKey)){
+    			SimpleCommand simpleCommand = commands.get(currKey);
+    			String[] args = command.replaceFirst(currKey, "").split(" ");
+    			return new Object[]{simpleCommand, args};
+       		}  		    		
+    	}
+    	return new Object[]{null,command.split(" ")};
     }
    
     private void execute(SimpleCommand simpleCommand, String command, String[] args, Message message) throws Exception{
