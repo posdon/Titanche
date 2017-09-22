@@ -3,19 +3,21 @@ package fr.satanche.titanche.werewolf.util;
 import java.util.ArrayList;
 import java.util.List;
 
-public enum Team {
-	
+public enum CauseOfDeath {
+
 	/* ***************************** */
 	/*						    	 */
 	/*   First generation of cards   */
 	/*							     */
 	/* ***************************** */
-	VILLAGER(Version.CLASSIC), 
-	WEREWOLF(Version.CLASSIC), 
-	LOVERS(Version.CLASSIC),
-	EQUALITY(Version.CLASSIC);
+	NOT_DEAD(new Version[]{Version.CLASSIC}),
+	VILLAGERS(new Version[]{Version.CLASSIC}),
+	WITCH(new Version[]{Version.CLASSIC}),
+	WEREWOLF(new Version[]{Version.CLASSIC}),
+	HUNTER(new Version[]{Version.CLASSIC}),
+	LOVER(new Version[]{Version.CLASSIC});
 	
-	Team(Version... versions){
+	CauseOfDeath(Version... versions){
 		this.versions = new ArrayList<Version>();
 		for(Version version : versions)
 			this.versions.add(version);

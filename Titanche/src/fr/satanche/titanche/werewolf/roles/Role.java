@@ -3,10 +3,10 @@ package fr.satanche.titanche.werewolf.roles;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.satanche.titanche.werewolf.Version;
 import fr.satanche.titanche.werewolf.util.Team;
+import fr.satanche.titanche.werewolf.util.Version;
 
-public enum Roles {
+public enum Role {
 
 	/* ***************************** */
 	/*						    	 */
@@ -25,7 +25,7 @@ public enum Roles {
 	private List<Version> versions;
 	private List<Team> startingTeams;
 	
-	Roles(Team[] teams, Version[] versions){
+	Role(Team[] teams, Version[] versions){
 		startingTeams = new ArrayList<Team>();
 		this.versions = new ArrayList<Version>();
 		for(Version version : versions)
