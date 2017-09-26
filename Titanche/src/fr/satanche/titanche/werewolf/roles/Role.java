@@ -13,21 +13,23 @@ public enum Role {
 	/*   First generation of cards   */
 	/*							     */
 	/* ***************************** */
-	VILLAGER(new Team[]{Team.VILLAGER}, new Version[]{Version.CLASSIC}),
-	LITTLE_GIRL(new Team[]{Team.VILLAGER}, new Version[]{Version.CLASSIC}),
-	HUNTER(new Team[]{Team.VILLAGER}, new Version[]{Version.CLASSIC}),
-	SEER(new Team[]{Team.VILLAGER}, new Version[]{Version.CLASSIC}),
-	CUPID(new Team[]{Team.VILLAGER}, new Version[]{Version.CLASSIC}),
-	THIEF(new Team[]{Team.VILLAGER}, new Version[]{Version.CLASSIC}),
-	WITCH(new Team[]{Team.VILLAGER}, new Version[]{Version.CLASSIC}),
-	WEREWOLF(new Team[]{Team.WEREWOLF}, new Version[]{Version.CLASSIC});
+	VILLAGER(new Team[]{Team.VILLAGER}, new Version[]{Version.CLASSIC},false),
+	LITTLE_GIRL(new Team[]{Team.VILLAGER}, new Version[]{Version.CLASSIC},false),
+	HUNTER(new Team[]{Team.VILLAGER}, new Version[]{Version.CLASSIC},false),
+	SEER(new Team[]{Team.VILLAGER}, new Version[]{Version.CLASSIC},true),
+	CUPID(new Team[]{Team.VILLAGER}, new Version[]{Version.CLASSIC},true),
+	THIEF(new Team[]{Team.VILLAGER}, new Version[]{Version.CLASSIC},true),
+	WITCH(new Team[]{Team.VILLAGER}, new Version[]{Version.CLASSIC},true),
+	WEREWOLF(new Team[]{Team.WEREWOLF}, new Version[]{Version.CLASSIC},false);
 	
 	private List<Version> versions;
 	private List<Team> startingTeams;
+	private boolean unic;
 	
-	Role(Team[] teams, Version[] versions){
+	Role(Team[] teams, Version[] versions, boolean unic){
 		startingTeams = new ArrayList<Team>();
 		this.versions = new ArrayList<Version>();
+		this.unic = unic;
 		for(Version version : versions)
 			this.versions.add(version);
 		for(Team team : teams)
@@ -41,5 +43,9 @@ public enum Role {
 	
 	public List<Version> getAvailableVersion(){
 		return versions;
+	}
+	
+	public boolean isUnic(){
+		return unic;
 	}
 }
