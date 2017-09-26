@@ -44,6 +44,10 @@ public class GameBuilder {
 		return this;
 	}
 	
+	public boolean hasPlayer(Player player){
+		return players.contains(player);
+	}
+	
 	public Game build(){
 		Game result = new Game(version, players, roles);
 		roles.clear();

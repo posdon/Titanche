@@ -82,12 +82,31 @@ public class Player {
 	
 	// Others functions
 	
+	
+	
 	public boolean kill(CauseOfDeath causeOfDeath){
 		this.setCauseOfDeath(causeOfDeath);
 		isAlive = false;
 		return true;
 	}
-	
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Player other = (Player) obj;
+		if (pseudo == null) {
+			if (other.pseudo != null)
+				return false;
+		} else if (!pseudo.equals(other.pseudo))
+			return false;
+		return true;
+	}
+
 	public boolean kill(){
 		if(this.causeOfDeath != null){
 			isAlive = false;

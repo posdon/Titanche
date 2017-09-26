@@ -30,6 +30,10 @@ public class Game {
 		this.canVote = false;
 	}
 	
+	public boolean hasPlayer(Player player){
+		return players.contains(player);
+	}
+	
 	/**
 	 * Give the cards to players
 	 * @return if there is the good amount of cards for the number of player or if the game already started.
