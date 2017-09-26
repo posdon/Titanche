@@ -10,185 +10,200 @@ import net.dv8tion.jda.core.entities.User;
 
 public class GameManager {
 
-	private static Map<Player,User> linkUserPlayer;
-	private static Map<String, GameBuilder> linkUserGame;
-	private static Map<String, Game> runningGame;
+	private Map<GameInterface,User> linkGameCreator;
+	private Map<Player,User> linkPlayerUser;
 	public static final GameManager INSTANCE = new GameManager();
 	
 	private GameManager(){
-		linkUserPlayer = new HashMap<Player,User>();
-		linkUserGame = new HashMap<String, GameBuilder>();
-		runningGame = new HashMap<String,Game>();
+		linkGameCreator = new HashMap<GameInterface,User>();
+		linkPlayerUser = new HashMap<Player,User>();
 	}
 	
-	/* *******************
-	 * Player management *
-	 * *******************/
+	
+	
+	/* **********************
+	 * 						*
+	 *	Creator management	*
+	 * 						*
+	 * **********************/
 	
 	/**
-	 * Create a new player
-	 * @param user that will be associated to the player
-	 * @param pseudo of the player
-	 * @return if the pseudo is free or not
+	 * Create a new GameInterface (GameBuilder)
+	 * @param name of the gameInterface
+	 * @param user creator of the gameInterface
+	 * @return if the name is valid (not empty or already used)
 	 */
-	public static boolean newPlayer(User user, String pseudo){
-		Player currPlayer = new Player(pseudo);
-		if(! linkUserPlayer.containsKey(currPlayer)){
-			linkUserPlayer.put(new Player(pseudo),user);
-			return true;
-		}
-		return false;
-	}
-	
-	/**
-	 * Remove the player
-	 * @param pseudo of the player
-	 */
-	public static void removePlayer(String pseudo){
-		Player currPlayer = new Player(pseudo);
-		linkUserPlayer.remove(currPlayer);
-	}	
-	
-	/**
-	 * Remove the player
-	 * @param player to remove
-	 */
-	public static void removePlayer(Player player){
-		linkUserPlayer.remove(player);
-	}
-
-	/* *******************
-	 *  Game management  *
-	 * *******************/
-	/**
-	 * Create a new GameBuilder
-	 * @param name name of the GameBuilder
-	 */
-	public static boolean createNewGameBuilder(String name){
-		if(!linkUserGame.containsKey(name) && !runningGame.containsKey(name)){
-			linkUserGame.put(name, new GameBuilder());
-			return true;
-		}
-		return false;
-	}
-	
-	/**
-	 * Verify if the player is in any Game or GameBuilder
-	 * @param player
-	 * @return
-	 */
-	public static boolean removeIfLastOccurence(Player player){
-		for(GameBuilder gameBuilder : linkUserGame.values()){
-			if(gameBuilder.hasPlayer(player)){
-				return false;
+	public boolean createNewGameBuilder(String name, User user){
+		if(!name.equals("")){
+			GameInterface currGameInterface = isInLinkGameCreator(name);
+			if(currGameInterface == null) {
+				linkGameCreator.put(new GameBuilder(name),user);
+				return true;
 			}
 		}
-		for(Game game : runningGame.values()){
-			if(game.hasPlayer(player)){
-				return false;
-			}
-		}
-		return true;
-	}
-	
-	/**
-	 * Add the player from the given GameBuilder, and create the link between the user and the player if it is the first occurrence
-	 * @param user calling the action
-	 * @param name of the game
-	 * @param player to remove
-	 * @return if the add correctly happen
-	 */
-	public static boolean addPlayerOfGame(User user, String name, String player){
-		Player currPlayer = new Player(player);
-		if(linkUserGame.get(name) != null){
-			if(linkUserPlayer.get(currPlayer) != user){
-				newPlayer(user,player);
-			}
-			linkUserGame.get(name).addPlayer(currPlayer);
-			return true;
-		}
 		return false;
 	}
 	
 	/**
-	 * Remove the player from the given GameBuilder, and remove the link between the user and the player if it is the last occurrence
-	 * @param user calling the action
-	 * @param name of the game
-	 * @param player to remove
-	 * @return if the remove correctly happen
+	 * Add a role to the given GameBuilder
+	 * @param name of the gameBuilder
+	 * @param user creator of the gameBuilder
+	 * @param role to add
+	 * @return if the role has been correctly added
 	 */
-	public static boolean removePlayerOfGame(User user, String name, String player){
-		Player currPlayer = new Player(player);
-		if(linkUserGame.get(name) != null){
-			linkUserGame.get(name).removePlayer(currPlayer);
-			if(removeIfLastOccurence(currPlayer)) 
-				linkUserPlayer.remove(currPlayer);
-			return true;
+	public boolean addRole(String name, User user, String role){
+		GameInterface currGameInterface = isInLinkGameCreator(name,user);
+		if(currGameInterface != null){
+			if(currGameInterface instanceof GameBuilder){
+				((GameBuilder) currGameInterface).addRole(Role.getRole(role));
+				return true;
+			}
 		}
 		return false;
 	}
 	
-	
-	/**
-	 * Add role to the given game
-	 * @param name of the game
+	/** Remove a role to the given GameBuilder
+	 * @param name of the gameBuilder
+	 * @param user creator of the gameBuilder
 	 * @param role to remove
-	 * @return if the remove correctly happen
+	 * @return if the role has been correctly removed
 	 */
-	public static boolean addRoleOfGame(String name, String role){
-		Role currRole = Role.getRole(role);
-		if(currRole != null && linkUserGame.get(name) != null){
-			linkUserGame.get(name).addRole(currRole);
-			return true;
+	public boolean removeRole(String name, User user, String role){
+		GameInterface currGameInterface = isInLinkGameCreator(name,user);
+		if(currGameInterface != null){
+			if(currGameInterface instanceof GameBuilder){
+				((GameBuilder) currGameInterface).removeRole(Role.getRole(role));
+			}
+		}
+		return false;
+	} 
+	
+	/** Set the version of the given GameBuilder
+	 * @param name of the gameBuilder
+	 * @param user creator of the gameBuilder
+	 * @param version to set
+	 * @return if the version has been correctly set
+	 */
+	public boolean setVersion(String name, User user, String version){
+		GameInterface currGameInterface = isInLinkGameCreator(name,user);
+		if(currGameInterface != null){
+			if(currGameInterface instanceof GameBuilder){
+				((GameBuilder) currGameInterface).setVersion(Version.getVersion(version));
+			}
 		}
 		return false;
 	}
-	
 	
 	/**
-	 * Remove role to the given game
+	 * Create and start the Game object
 	 * @param name of the game
-	 * @param role to remove
-	 * @return if the remove correctly happen
+	 * @param user creator of the game
+	 * @return if the game has started correctly
 	 */
-	public static boolean removeRoleOfGame(String name, String role){
-		Role currRole = Role.getRole(role);
-		if(currRole != null && linkUserGame.get(name) != null){
-			linkUserGame.get(name).removeRole(currRole);
-			return true;
+	public boolean startGame(String name, User user){
+		GameInterface currGameInterface = isInLinkGameCreator(name, user);
+		if(currGameInterface != null){
+			Game currGame = ((GameBuilder) currGameInterface).build();
+			if(currGame.startGame()){
+				linkGameCreator.put(currGame, user);
+				linkGameCreator.remove(currGameInterface);
+				return true;
+			}
 		}
 		return false;
 	}
 	
+	/* **********************
+	 * 						*
+	 *	 Player management	*
+	 * 						*
+	 * **********************/	
 	
 	/**
-	 * Set the version of the given game
-	 * @param name of the game
-	 * @param version of the game
-	 * @return if the version is correct
+	 * Add a player to the given game
+	 * @param name of the GameInterface (GameBuilder)
+	 * @param user adding a player
+	 * @param pseudo of the player
+	 * @return if the player has been correctly added.
 	 */
-	public static boolean setVersionOfGame(String name, String version){
-		Version result = Version.getVersion(version);
-		if(result != null && linkUserGame.get(name) != null){
-			linkUserGame.get(name).setVersion(result);
-			return true;
+	public boolean addPlayer(String name, User user, String pseudo){
+		GameInterface currGameInterface = isInLinkGameCreator(name);
+		if(currGameInterface != null){
+			if(currGameInterface instanceof GameBuilder){
+				Player currPlayer = isExistantPlayer(pseudo);
+				if(currPlayer == null){
+					currPlayer = new Player(pseudo);
+					linkPlayerUser.put(currPlayer, user);
+				}
+				((GameBuilder) currGameInterface).addPlayer(currPlayer);
+				return true;
+			}
 		}
 		return false;
 	}
-	
 	
 	/**
-	 * Launch the game
-	 * @param name of the game
-	 * @return if the game has correctly started
+	 * Remove a player from the given game
+	 * @param name of the gamebuilder
+	 * @param user removing his player
+	 * @param pseudo of the player
+	 * @return if the player has been correctly removed
 	 */
-	public static boolean build(String name){
-		Game result = linkUserGame.get(name).build();
-		if(result.startGame()){
-			runningGame.put(name, result);
-			linkUserGame.remove(name);
-			return true;
+	public boolean removePlayer(String name, User user, String pseudo){
+		GameInterface currGameInterface = isInLinkGameCreator(name);
+		if(currGameInterface != null){
+			if(currGameInterface instanceof GameBuilder){
+				Player currPlayer = isExistantPlayer(pseudo);
+				if(currPlayer != null){
+					((GameBuilder) currGameInterface).removePlayer(currPlayer);
+					if(!isActivePlayer(currPlayer)) linkPlayerUser.remove(currPlayer);
+					return true;
+				}
+			}
 		}
 		return false;
 	}
+	
+	/* **********************
+	 * 						*
+	 *	   Utils function	*
+	 * 						*
+	 * **********************/
+	
+	public GameInterface isInLinkGameCreator(String name){
+		for(GameInterface gameInterface : linkGameCreator.keySet()){
+			if(gameInterface.getName().equals(name)){
+				return gameInterface;
+			}
+		}
+		return null;
+	}
+	
+	public GameInterface isInLinkGameCreator(String name, User user){
+		for(GameInterface gameInterface : linkGameCreator.keySet()){
+			if(gameInterface.getName().equals(name) && linkGameCreator.get(gameInterface).equals(user)){
+				return gameInterface;
+			}
+		}
+		return null;
+	}
+	
+	public Player isExistantPlayer(String pseudo){
+		for(Player player : linkPlayerUser.keySet()){
+			if(player.getPseudo().equals(pseudo)){
+				return player;
+			}
+		}
+		return null;
+	}
+	
+	public boolean isActivePlayer(Player player){
+		for(GameInterface gameInterface : linkGameCreator.keySet()){
+			if(gameInterface.hasPlayer(player)){
+				return true;
+			}
+		}
+		return false;
+	}
+	
 }

@@ -12,8 +12,9 @@ import fr.satanche.titanche.werewolf.util.CauseOfDeath;
 import fr.satanche.titanche.werewolf.util.Team;
 import fr.satanche.titanche.werewolf.util.Version;
 
-public class Game {
+public class Game implements GameInterface {
 
+	private String name;
 	private List<Player> players;
 	private List<Role> roles;
 	private List<Team> winningTeam;
@@ -21,7 +22,8 @@ public class Game {
 	private Map<Player,Player> voteMap;
 	private boolean running;
 	
-	public Game(Version version, List<Player> players, List<Role> roles){
+	public Game(String name, Version version, List<Player> players, List<Role> roles){
+		this.name = name;
 		this.players = players;
 		this.roles = roles;
 		this.running = false;
@@ -34,6 +36,27 @@ public class Game {
 		return players.contains(player);
 	}
 	
+	public String getName(){
+		return name;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Game other = (Game) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		return true;
+	}
+
 	/**
 	 * Give the cards to players
 	 * @return if there is the good amount of cards for the number of player or if the game already started.
