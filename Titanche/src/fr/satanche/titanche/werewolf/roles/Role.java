@@ -48,4 +48,26 @@ public enum Role {
 	public boolean isUnic(){
 		return unic;
 	}
+	
+	public static Role getRole(String name){
+		if(name.equals("VILLAGER")){
+			return Role.VILLAGER;
+		}else if(name.equals("LITTLE_GIRL")){
+			return Role.LITTLE_GIRL;
+		}else if(name.equals("HUNTER")){
+			return Role.HUNTER;
+		}else if(name.equals("SEER")){
+			return Role.SEER;
+		}else if(name.equals("CUPID")){
+			return Role.CUPID;
+		}else if(name.equals("THIEF")){
+			return Role.THIEF;
+		}else if(name.equals("WEREWOLF")){
+			return Role.WEREWOLF;
+		}else if(name.equals("WITCH")){
+			return Role.WITCH;
+		}else{
+			return null;
+		}
+	}
 }
