@@ -1,4 +1,4 @@
-package fr.satanche.titanche.werewolf;
+package fr.satanche.titanche.werewolf.player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,17 +23,38 @@ public class Player {
 		isAlive = true;
 		causeOfDeath = CauseOfDeath.NOT_DEAD;
 	}
+
+	// Setters 
+	
+	public void setCanVote(boolean canVote){
+		this.canVote = canVote;
+	}
+	
+	public void setCauseOfDeath(CauseOfDeath causeOfDeath){
+		this.causeOfDeath = causeOfDeath;
+	}
 	
 	public boolean setRole(Role role){
-		if(this.role == null){
+		if(this.role == null || this.role == Role.THIEF){
+			this.teams.clear();
 			this.role = role;
 			for(Team team : role.getStartingTeams()){
-				teams.add(team);
+				this.teams.add(team);
 			}
 			return true;
 		}
 		return false;
 	}
+	
+	public void addTeam(Team team){
+		teams.add(team);
+	}
+	
+	public boolean removeteam(Team team){
+		return teams.remove(team);
+	}
+	
+	// Getters
 	
 	public boolean isAlive(){
 		return this.isAlive;
@@ -57,5 +78,21 @@ public class Player {
 
 	public boolean canVote() {
 		return canVote;
+	}
+	
+	// Others functions
+	
+	public boolean kill(CauseOfDeath causeOfDeath){
+		this.setCauseOfDeath(causeOfDeath);
+		isAlive = false;
+		return true;
+	}
+	
+	public boolean kill(){
+		if(this.causeOfDeath != null){
+			isAlive = false;
+			return true;
+		}
+		return false;
 	}
 }
