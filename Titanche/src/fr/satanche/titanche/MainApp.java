@@ -1,5 +1,9 @@
 package fr.satanche.titanche;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Properties;
 import java.util.Scanner;
 
 import javax.security.auth.login.LoginException;
@@ -13,13 +17,19 @@ import net.dv8tion.jda.core.exceptions.RateLimitedException;
 
 public class MainApp implements Runnable {
 
-	private static JDA jda;
-	private final CommandFactory commandFactory = new CommandFactory(this);
+	private JDA jda;
+	private CommandFactory commandFactory;
 	private boolean running;
 	private Scanner scanner = new Scanner(System.in);
+	private final String path_werewolfProperties = "./src/fr/satanche/titanche/properties/werewolf/werewolf.properties";
 	
 	
-	public MainApp(String token) throws LoginException, IllegalArgumentException, RateLimitedException, InterruptedException{
+	public MainApp(String token) throws LoginException, IllegalArgumentException, RateLimitedException, InterruptedException, FileNotFoundException, IOException{
+		
+		Properties propWerewolf = new Properties();
+		propWerewolf.load(new FileInputStream(path_werewolfProperties));
+		commandFactory = new CommandFactory(this,propWerewolf);
+		
 		jda = new JDABuilder(AccountType.BOT).setToken(token).buildBlocking();
 		jda.addEventListener(new BotListener(commandFactory));
 		System.out.println("Bot connected.");
@@ -51,8 +61,7 @@ public class MainApp implements Runnable {
 		try {
 			MainApp main = new MainApp(tokenBot);
 			new Thread(main, "bot").start();
-		} catch (LoginException | IllegalArgumentException | RateLimitedException | InterruptedException e) {
-			// TODO Auto-generated catch block
+		} catch (LoginException | IllegalArgumentException | RateLimitedException | InterruptedException | IOException e) {
 			e.printStackTrace();
 		}
 

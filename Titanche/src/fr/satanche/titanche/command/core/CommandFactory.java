@@ -5,6 +5,7 @@ import java.lang.reflect.Parameter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import fr.satanche.titanche.MainApp;
 import fr.satanche.titanche.command.basic.CommandBotManaging;
@@ -12,6 +13,7 @@ import fr.satanche.titanche.command.core.Command.ExecutorType;
 import fr.satanche.titanche.command.roleplay.CommandRolePlayCreation;
 import fr.satanche.titanche.command.roleplay.CommandRolePlayManaging;
 import fr.satanche.titanche.command.roleplay.CommandRolePlayPlaying;
+import fr.satanche.titanche.command.werewolf.CommandWerewolfCreatorBeforeGame;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
@@ -26,10 +28,11 @@ public class CommandFactory {
 	private final String tag = "";
 	private MainApp mainRef;
 	
-	public CommandFactory(MainApp mainRef) {
+	public CommandFactory(MainApp mainRef, Properties propWerewolf) {
 		this.mainRef = mainRef;
 		registerCommand(new CommandBotManaging(mainRef));
 		registerCommands(new CommandRolePlayCreation(), new CommandRolePlayManaging(), new CommandRolePlayPlaying());
+		registerCommand(new CommandWerewolfCreatorBeforeGame(propWerewolf));
     }
    
     public String getTag() {
@@ -67,6 +70,7 @@ public class CommandFactory {
             execute(((SimpleCommand)object[0]), command, (String[])object[1], null);
         }catch(Exception exception){
             System.out.println("La methode "+((SimpleCommand)object[0]).getMethod().getName()+" n'est pas correctement initialisé.");
+            System.out.println(exception.toString());
         }
     }
    
@@ -77,6 +81,7 @@ public class CommandFactory {
             execute(((SimpleCommand)object[0]), command,(String[])object[1], message);
         }catch(Exception exception){
             System.out.println("La methode "+((SimpleCommand)object[0]).getMethod().getName()+" n'est pas correctement initialisé.");
+           exception.printStackTrace();
         }
         return true;
     }
