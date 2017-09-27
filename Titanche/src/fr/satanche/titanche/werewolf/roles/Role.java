@@ -50,6 +50,7 @@ public enum Role {
 	}
 	
 	public static Role getRole(String name){
+		name = name.toUpperCase();
 		if(name.equals("VILLAGER")){
 			return Role.VILLAGER;
 		}else if(name.equals("LITTLE_GIRL")){

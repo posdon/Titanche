@@ -25,36 +25,63 @@ public class GameBuilder implements GameInterface {
 		return name;
 	}
 	
-	public GameBuilder addPlayer(Player player){
-		if(!players.contains(player)) players.add(player);
-		return this;
-	}
-	
-	public GameBuilder removePlayer(Player player){
-		players.remove(player);
-		return this;
-	}
-	
-	public GameBuilder addRole(Role role){
-		if(!role.isUnic()||!roles.contains(role)) 
-			if(role.getAvailableVersion().contains(this.version))
-					roles.add(role);
-		return this;
-	}
-	
-	public GameBuilder removeRole(Role role){
-		roles.remove(role);
-		return this;
-	}
-	
-	public GameBuilder setVersion(Version version){
-		this.version = version;
-		for(Role role : roles){
-			if(!role.getAvailableVersion().contains(version)){
-				roles.remove(role);
-			}
+	public boolean addPlayer(Player player){
+		if(!players.contains(player) && player != null) {
+			players.add(player);
+			return true;
 		}
-		return this;
+		return false;
+	}
+	
+	public boolean removePlayer(Player player){
+		if(player != null){
+			players.remove(player);
+			return true;
+		}
+		return false;
+	}
+	
+	public List<Player> getPlayers(){
+		return players;
+	}
+	
+	public boolean addRole(Role role){
+		if(role != null)
+			if(!role.isUnic()||!roles.contains(role))
+				if(role.getAvailableVersion().contains(this.version)){
+					roles.add(role);
+					return true;
+				}
+		return false;
+	}
+	
+	public boolean removeRole(Role role){
+		if(role != null){
+			roles.remove(role);
+			return true;
+		}
+		return false;
+	}
+	
+	public List<Role> getRoles(){
+		return roles;
+	}
+	
+ 	public boolean setVersion(Version version){
+		if(version != null){
+			this.version = version;
+			for(Role role : roles){
+				if(!role.getAvailableVersion().contains(version)){
+					roles.remove(role);
+					return true;
+				}
+			}			
+		}
+		return false;
+	}
+	
+	public Version getVersion(){
+		return version;
 	}
 	
 	public boolean hasPlayer(Player player){

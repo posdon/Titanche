@@ -39,6 +39,14 @@ public class Game implements GameInterface {
 	public String getName(){
 		return name;
 	}
+	
+	public List<Role> getRoles(){
+		return roles;
+	}
+	
+	public List<Player> getPlayers(){
+		return players;
+	}
 
 	@Override
 	public boolean equals(Object obj) {
