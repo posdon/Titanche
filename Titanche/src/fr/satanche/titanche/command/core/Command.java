@@ -12,8 +12,13 @@ public @interface Command {
 	public String name();
 	public String description() default "Sans description.";
 	public ExecutorType type() default ExecutorType.ALL;
+	public RangeType range() default RangeType.ALL;
 	
 	public enum ExecutorType{
 		ALL, USER, CONSOLE;
+	}
+	
+	public enum RangeType{
+		ALL, PUBLIC, PRIVATE;
 	}
 }

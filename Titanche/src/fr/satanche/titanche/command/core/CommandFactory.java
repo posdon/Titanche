@@ -10,6 +10,7 @@ import java.util.Properties;
 import fr.satanche.titanche.MainApp;
 import fr.satanche.titanche.command.basic.CommandBotManaging;
 import fr.satanche.titanche.command.core.Command.ExecutorType;
+import fr.satanche.titanche.command.core.Command.RangeType;
 import fr.satanche.titanche.command.roleplay.CommandRolePlayCreation;
 import fr.satanche.titanche.command.roleplay.CommandRolePlayManaging;
 import fr.satanche.titanche.command.roleplay.CommandRolePlayPlaying;
@@ -52,7 +53,7 @@ public class CommandFactory {
             if(method.isAnnotationPresent(Command.class)){
                 Command command = method.getAnnotation(Command.class);
                 method.setAccessible(true);
-                SimpleCommand simpleCommand = new SimpleCommand(command.name(), command.description(), command.type(), object, method);
+                SimpleCommand simpleCommand = new SimpleCommand(command.name(), command.description(), command.type(), command.range(), object, method);
                 if(commands.containsKey(command.name()))
                 	throw new Error("[Warning] [Titanche] : Another command exist with the same name than "+command.name());
                 commands.put(command.name(), simpleCommand);
@@ -74,9 +75,21 @@ public class CommandFactory {
         }
     }
    
-    public boolean commandUser(User user, String command, Message message){
+    public boolean commandUserInPrivate(User user, String command, Message message){
         Object[] object = getCommand(command);
-        if(object[0] == null || ((SimpleCommand)object[0]).getExecutorType() == ExecutorType.CONSOLE) return false;
+        if(object[0] == null || ((SimpleCommand)object[0]).getExecutorType() == ExecutorType.CONSOLE || ((SimpleCommand)object[0]).getRangeType() == RangeType.PUBLIC) return false;
+        try{
+            execute(((SimpleCommand)object[0]), command,(String[])object[1], message);
+        }catch(Exception exception){
+            System.out.println("La methode "+((SimpleCommand)object[0]).getMethod().getName()+" n'est pas correctement initialisé.");
+           exception.printStackTrace();
+        }
+        return true;
+    }
+    
+    public boolean commandUserInPublic(User user, String command, Message message){
+        Object[] object = getCommand(command);
+        if(object[0] == null || ((SimpleCommand)object[0]).getExecutorType() == ExecutorType.CONSOLE || ((SimpleCommand)object[0]).getRangeType() == RangeType.PRIVATE) return false;
         try{
             execute(((SimpleCommand)object[0]), command,(String[])object[1], message);
         }catch(Exception exception){

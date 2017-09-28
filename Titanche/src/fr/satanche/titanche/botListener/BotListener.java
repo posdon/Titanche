@@ -2,6 +2,7 @@ package fr.satanche.titanche.botListener;
 
 
 import fr.satanche.titanche.command.core.CommandFactory;
+import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.EventListener;
@@ -24,7 +25,11 @@ public class BotListener implements EventListener {
 		String message = event.getMessage().getContent();
 		if(message.startsWith(commandFactory.getTag())){
 			message = message.replaceFirst(commandFactory.getTag(), "");
-			commandFactory.commandUser(event.getAuthor(), message, event.getMessage());
+			if(event.getChannelType() == ChannelType.PRIVATE){
+				commandFactory.commandUserInPrivate(event.getAuthor(), message, event.getMessage());
+			}else{
+				commandFactory.commandUserInPublic(event.getAuthor(), message, event.getMessage());
+			}
 		}
 		
 	}
