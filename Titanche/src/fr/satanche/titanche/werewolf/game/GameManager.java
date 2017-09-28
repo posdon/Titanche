@@ -1,6 +1,5 @@
 package fr.satanche.titanche.werewolf.game;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,20 +11,21 @@ import net.dv8tion.jda.core.entities.User;
 
 public class GameManager {
 
-	private Map<GameInterface,User> linkGameCreator;
-	private Map<Player,User> linkPlayerUser;
+	private Map<GameBuilder,User> linkGameCreator;
+	private Map<Game,User> linkRunningGame;
+	private Map<User,Player> linkPlayerUser;
 	public static final GameManager INSTANCE = new GameManager();
 	
 	private GameManager(){
-		linkGameCreator = new HashMap<GameInterface,User>();
-		linkPlayerUser = new HashMap<Player,User>();
+		linkGameCreator = new HashMap<GameBuilder,User>();
+		linkRunningGame = new HashMap<Game,User>();
+		linkPlayerUser = new HashMap<User,Player>();
 	}
-	
 	
 	
 	/* **********************
 	 * 						*
-	 *	Creator management	*
+	 *	Building management	*
 	 * 						*
 	 * **********************/
 	
@@ -37,10 +37,9 @@ public class GameManager {
 	 */
 	public boolean createNewGameBuilder(String name, User user){
 		if(!name.equals("")){
-			GameInterface currGameInterface = isInLinkGameCreator(name);
-			if(currGameInterface == null) {
+			if(getGame(name) == null && getGameBuilder(name) == null) {
 				linkGameCreator.put(new GameBuilder(name),user);
-				return true;
+				return true;	
 			}
 		}
 		return false;
@@ -54,11 +53,9 @@ public class GameManager {
 	 * @return if the role has been correctly added
 	 */
 	public boolean addRole(String name, User user, String role){
-		GameInterface currGameInterface = isInLinkGameCreator(name,user);
-		if(currGameInterface != null){
-			if(currGameInterface instanceof GameBuilder){
-				return ((GameBuilder) currGameInterface).addRole(Role.getRole(role));
-			}
+		GameBuilder currGameBuilder = getGameBuilder(name,user);
+		if(currGameBuilder != null){
+			return currGameBuilder.addRole(Role.getRole(role));
 		}
 		return false;
 	}
@@ -70,56 +67,12 @@ public class GameManager {
 	 * @return if the role has been correctly removed
 	 */
 	public boolean removeRole(String name, User user, String role){
-		GameInterface currGameInterface = isInLinkGameCreator(name,user);
-		if(currGameInterface != null){
-			if(currGameInterface instanceof GameBuilder){
-				return ((GameBuilder) currGameInterface).removeRole(Role.getRole(role));
-			}
+		GameBuilder currGameBuilder = getGameBuilder(name,user);
+		if(currGameBuilder != null){
+			return currGameBuilder.removeRole(Role.getRole(role));
 		}
 		return false;
 	} 
-	
-	/**
-	 * Get the list of current roles
-	 * @param name of the building game
-	 * @param user creator of the game
-	 * @return if the game exists, the list of the current roles. If it doesn't return null
-	 */
-	public List<Role> getRoles(String name, User user){
-		GameInterface currGameInterface = isInLinkGameCreator(name,user);
-		if(currGameInterface != null){
-			if(currGameInterface instanceof GameBuilder){
-				return ((GameBuilder) currGameInterface).getRoles();
-			}
-		}
-		return null;
-	}
-	/**
-	 * Print all the detail of the roles of the game
-	 * @param name of the gameInterface
-	 * @param user calling the function
-	 * @return null if we don't have any game, the detail of the role instead
-	 */
-	public String printRoles(String name, User user){
-		List<Role> rolesList = getRoles(name,user);
-		if(rolesList == null){
-			return null;
-		}else{
-			Map<Role,Integer> counterRole = new HashMap<Role,Integer>();
-			for(Role currRole : rolesList){
-				if(counterRole.containsKey(currRole)){
-					counterRole.put(currRole, counterRole.get(currRole)+1);
-				}else{
-					counterRole.put(currRole, 1);
-				}
-			}
-			String result = "";
-			for(Role currRole : counterRole.keySet()){
-				result += currRole.toString()+" : "+counterRole.get(currRole)+"\n";
-			}
-			return result;
-		}
-	}
 	
 	/** Set the version of the given GameBuilder
 	 * @param name of the gameBuilder
@@ -128,13 +81,27 @@ public class GameManager {
 	 * @return if the version has been correctly set
 	 */
 	public boolean setVersion(String name, User user, String version){
-		GameInterface currGameInterface = isInLinkGameCreator(name,user);
-		if(currGameInterface != null){
-			if(currGameInterface instanceof GameBuilder){
-				return ((GameBuilder) currGameInterface).setVersion(Version.getVersion(version));
-			}
+		GameBuilder currGameBuilder = getGameBuilder(name,user);
+		if(currGameBuilder != null){
+			return currGameBuilder.setVersion(Version.getVersion(version));
 		}
 		return false;
+	}
+	
+	/**
+	 * Get the list of current roles
+	 * @param name of the building game
+	 * @param user creator of the game
+	 * @return if the game exists, the list of the current roles. If it doesn't return null
+	 */
+	public List<Role> getRoles(String name){
+		GameInterface currGameInterface = getGameBuilder(name);
+		if(currGameInterface == null)
+			currGameInterface = getGame(name);
+		if(currGameInterface != null){
+			return currGameInterface.getRoles();
+		}
+		return null;
 	}
 	
 	/**
@@ -144,25 +111,18 @@ public class GameManager {
 	 * @return if the game has started correctly
 	 */
 	public boolean startGame(String name, User user){
-		GameInterface currGameInterface = isInLinkGameCreator(name, user);
-		if(currGameInterface != null){
-			Game currGame = ((GameBuilder) currGameInterface).build();
+		GameBuilder currGameBuilder = getGameBuilder(name, user);
+		if(currGameBuilder != null){
+			Game currGame = currGameBuilder.build();
 			if(currGame.startGame()){
-				linkGameCreator.put(currGame, user);
-				linkGameCreator.remove(currGameInterface);
+				linkRunningGame.put(currGame, user);
+				linkGameCreator.remove(currGameBuilder);
 				return true;
 			}
 		}
 		return false;
 	}
-	
-	
-	/* **********************
-	 * 						*
-	 *	 Player management	*
-	 * 						*
-	 * **********************/	
-	
+		
 	/**
 	 * Add a player to the given game
 	 * @param name of the GameInterface (GameBuilder)
@@ -171,16 +131,14 @@ public class GameManager {
 	 * @return if the player has been correctly added.
 	 */
 	public boolean addPlayer(String name, User user, String pseudo){
-		GameInterface currGameInterface = isInLinkGameCreator(name);
-		if(currGameInterface != null){
-			if(currGameInterface instanceof GameBuilder){
-				Player currPlayer = isExistantPlayer(pseudo);
-				if(currPlayer == null){
-					currPlayer = new Player(pseudo);
-					linkPlayerUser.put(currPlayer, user);
-				}
-				return ((GameBuilder) currGameInterface).addPlayer(currPlayer);
+		GameBuilder currGameBuilder = getGameBuilder(name);
+		if(currGameBuilder != null){
+			Player currPlayer = getPlayer(pseudo);
+			if(currPlayer == null){
+				currPlayer = new Player(pseudo);
+				linkPlayerUser.put(user,currPlayer);
 			}
+			return currGameBuilder.addPlayer(currPlayer);
 		}
 		return false;
 	}
@@ -193,15 +151,18 @@ public class GameManager {
 	 * @return if the player has been correctly removed
 	 */
 	public boolean removePlayer(String name, User user, String pseudo){
-		GameInterface currGameInterface = isInLinkGameCreator(name);
-		if(currGameInterface != null){
-			if(currGameInterface instanceof GameBuilder){
-				Player currPlayer = isExistantPlayer(pseudo);
-				if(currPlayer != null){
-					boolean result = ((GameBuilder) currGameInterface).removePlayer(currPlayer);
-					if(!isActivePlayer(currPlayer)) linkPlayerUser.remove(currPlayer);
-					return result;
+		GameBuilder currGameBuilder = getGameBuilder(name);
+		if(currGameBuilder != null){
+			Player currPlayer = getPlayer(pseudo);
+			if(currPlayer != null){
+				boolean result = currGameBuilder.removePlayer(currPlayer);
+				if(!isActivePlayer(currPlayer)){
+					for(User currUser : linkPlayerUser.keySet()){
+						if(currPlayer.equals(linkPlayerUser.get(currUser)))
+							linkPlayerUser.remove(currUser);
+					}
 				}
+				return result;
 			}
 		}
 		return false;
@@ -213,43 +174,22 @@ public class GameManager {
 	 * @return all the player subscribe to this gameInterface
 	 */
 	public List<Player> getPlayers(String name){
-		GameInterface currGameInterface = isInLinkGameCreator(name);
+		GameInterface currGameInterface = getGameBuilder(name);
+		if(currGameInterface == null)
+			currGameInterface = getGame(name);
 		if(currGameInterface != null){
-			if(currGameInterface instanceof GameBuilder){
-				return ((GameBuilder) currGameInterface).getPlayers();
-			}
+			return currGameInterface.getPlayers();
 		}
 		return null;
 	}
-
-	/**
-	 * Print all the detail of the players of the game
-	 * @param name of the gameInterface
-	 * @param user calling the function
-	 * @return null if we don't have any game, the detail of the player instead
-	 */
-	public String printPlayers(String name, User user){
-		GameInterface currGameInterface = isInLinkGameCreator(name,user);
-		List<Player> playerList = getPlayers(name);
-		if(playerList == null){
-			// We don't have any game with that name
-			return null;
-		}else{
-			String result = "";
-			if(currGameInterface == null || playerList.contains(user) || currGameInterface instanceof GameBuilder){
-				// The user isn't the game master or is part of the player or the game hasn't started yet.
-				for(Player player : playerList) result += player.getPseudo()+"\n";
-			}else{
-				for(Player player : playerList) {
-					result += player.getPseudo();
-					result += (!player.isAlive())?" (DEAD)":"";
-					result +=" : "+player.getRole().toString()+"\n";					
-				}
-			}
-			return result;
-		}
-	}
-
+	
+	/* **********************
+	 * 						*
+	 *	Playing management	*
+	 * 						*
+	 * **********************/
+	
+		
 	
 	/* **********************
 	 * 						*
@@ -257,36 +197,96 @@ public class GameManager {
 	 * 						*
 	 * **********************/
 	
-	public GameInterface isInLinkGameCreator(String name){
-		for(GameInterface gameInterface : linkGameCreator.keySet()){
-			if(gameInterface.getName().equals(name)){
-				return gameInterface;
+	public String printGamePlayers(String name, User user){
+		String result = "";
+		List<Player> playerList = getPlayers(name);
+		if(getGameBuilder(name) != null){
+			for(Player player : playerList) result += player.getPseudo()+"\n";
+		}else if(getGame(name) != null){
+			for(Player player : playerList){
+				result += player.getPseudo();
+				if(!player.isAlive())
+					result += (linkRunningGame.get(getGame(name)).equals(user))? " (Killed by "+player.getCauseOfDeath().toString()+")":" (DEAD)";
+				if(linkRunningGame.get(getGame(name)).equals(user)){
+					result += " : "+player.getRole().toString();
+				}
+				result += "\n";
+			}
+		}
+		return result;
+	}
+	
+	public String printGameRoles(String name, User user){
+		String result = "";
+		GameInterface gameInterface = getGameBuilder(name,user);
+		if(gameInterface == null)
+			gameInterface = getGame(name,user);
+		if(gameInterface != null){
+			List<Role> roleList = getRoles(name);
+			for(Role role : roleList){
+				result += role.toString()+"\n";
+			}
+		}
+		return result;
+	}
+
+	public GameBuilder getGameBuilder(String name){
+		for(GameBuilder gameBuilder : linkGameCreator.keySet()){
+			if(gameBuilder.getName().equals(name)){
+				return gameBuilder;
 			}
 		}
 		return null;
 	}
 	
-	public GameInterface isInLinkGameCreator(String name, User user){
-		for(GameInterface gameInterface : linkGameCreator.keySet()){
-			if(gameInterface.getName().equals(name) && linkGameCreator.get(gameInterface).equals(user)){
-				return gameInterface;
+	public GameBuilder getGameBuilder(String name, User user){
+		for(GameBuilder gameBuilder : linkGameCreator.keySet()){
+			if(gameBuilder.getName().equals(name) && linkGameCreator.get(gameBuilder).equals(user)){
+				return gameBuilder;
 			}
 		}
 		return null;
 	}
 	
-	public Player isExistantPlayer(String pseudo){
-		for(Player player : linkPlayerUser.keySet()){
-			if(player.getPseudo().equals(pseudo)){
-				return player;
+	public Game getGame(String name){
+		for(Game game : linkRunningGame.keySet()){
+			if(game.getName().equals(name)){
+				return game;
 			}
 		}
 		return null;
+	}
+	
+	public Game getGame(String name, User user){
+		for(Game game : linkRunningGame.keySet()){
+			if(game.getName().equals(name) && linkGameCreator.get(game).equals(user)){
+				return game;
+			}
+		}
+		return null;
+	}
+	
+	public Player getPlayer(String pseudo){
+		for(User user : linkPlayerUser.keySet()){
+			if(linkPlayerUser.get(user).getPseudo().equals(pseudo)){
+				return linkPlayerUser.get(user);
+			}
+		}
+		return null;
+	}
+	
+	public Player getPlayer(User user){
+		return linkPlayerUser.get(user);
 	}
 	
 	public boolean isActivePlayer(Player player){
-		for(GameInterface gameInterface : linkGameCreator.keySet()){
-			if(gameInterface.hasPlayer(player)){
+		for(GameBuilder gameBuilder : linkGameCreator.keySet()){
+			if(gameBuilder.hasPlayer(player)){
+				return true;
+			}
+		}
+		for(Game game : linkRunningGame.keySet()){
+			if(game.hasPlayer(player)){
 				return true;
 			}
 		}
