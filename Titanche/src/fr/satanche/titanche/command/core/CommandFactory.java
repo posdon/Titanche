@@ -15,6 +15,7 @@ import fr.satanche.titanche.command.roleplay.CommandRolePlayCreation;
 import fr.satanche.titanche.command.roleplay.CommandRolePlayManaging;
 import fr.satanche.titanche.command.roleplay.CommandRolePlayPlaying;
 import fr.satanche.titanche.command.werewolf.CommandWerewolfCreatorBeforeGame;
+import fr.satanche.titanche.command.werewolf.CommandWerewolfPlayerBeforeGame;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
@@ -33,7 +34,7 @@ public class CommandFactory {
 		this.mainRef = mainRef;
 		registerCommand(new CommandBotManaging(mainRef));
 		registerCommands(new CommandRolePlayCreation(), new CommandRolePlayManaging(), new CommandRolePlayPlaying());
-		registerCommand(new CommandWerewolfCreatorBeforeGame(propWerewolf));
+		registerCommands(new CommandWerewolfCreatorBeforeGame(propWerewolf), new CommandWerewolfPlayerBeforeGame(propWerewolf));
     }
    
     public String getTag() {

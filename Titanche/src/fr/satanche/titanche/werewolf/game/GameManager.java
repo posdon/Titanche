@@ -138,6 +138,9 @@ public class GameManager {
 				currPlayer = new Player(pseudo);
 				linkPlayerUser.put(user,currPlayer);
 			}
+			for(Game currGame : linkRunningGame.keySet()){
+				if(currGame.hasPlayer(currPlayer)) return false;
+			}
 			return currGameBuilder.addPlayer(currPlayer);
 		}
 		return false;
@@ -268,9 +271,8 @@ public class GameManager {
 	
 	public Player getPlayer(String pseudo){
 		for(User user : linkPlayerUser.keySet()){
-			if(linkPlayerUser.get(user).getPseudo().equals(pseudo)){
-				return linkPlayerUser.get(user);
-			}
+			Player currPlayer = linkPlayerUser.get(user); 
+			if(currPlayer.getPseudo().equals(pseudo)) return currPlayer;
 		}
 		return null;
 	}
@@ -286,9 +288,7 @@ public class GameManager {
 			}
 		}
 		for(Game game : linkRunningGame.keySet()){
-			if(game.hasPlayer(player)){
-				return true;
-			}
+			if(game.hasPlayer(player)) return true;
 		}
 		return false;
 	}
